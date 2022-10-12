@@ -210,6 +210,11 @@ app.get("/verify/:id", async function(req, res, next) {
 });
 app.post("/api/short", async function(req, res) {
   let { url, alias } = req.body;
+  if(!url) return res.status(411).send({
+    error: true,
+    message: "url required"
+  });
+
   let { login } = req.cookies;
 
   let format = {}
