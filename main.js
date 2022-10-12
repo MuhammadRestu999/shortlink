@@ -38,7 +38,7 @@ app.use(async function(req, res, next) {
 
   let { login } = req.cookies;
 
-  let format = {}
+  let format = { email: btoa("null"), password: btoa("null") }
   try {
     format = JSON.parse(atob(login));
   } catch {}
