@@ -178,11 +178,12 @@ app.post("/api/register", async function(req, res) {
     verified: false
   });
   let id = _id.toHexString()
+  let url = req.protocol + "://" + req.get("host")
 
   await sendEmail(email, "Verify account", `
 Thank you for signing up for Shortlink, a free link shortening website.
 <br><br>
-To shorten the link, please activate your account by clicking <a href="http://localhost:8080/verify/${id}">here</a>.
+To shorten the link, please activate your account by clicking <a href="${url}/verify/${id}">here</a>.
 `.trim());
 
   res.status(200).send({
