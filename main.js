@@ -44,7 +44,7 @@ app.use(async function(req, res, next) {
   } catch {}
 
   let exists = await data.collection.findOne({ email: atob(format.email) })
-  if((!exists || exists.password != atob(format.password)) && (!req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify"))) {
+  if((!exists || exists.password != atob(format.password)) && (!req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify") && !req.path.includes("/api"))) {
     res.clearCookie("login");
     res.redirect("/login");
     return !1;
@@ -81,6 +81,11 @@ app.get("/api/list", async function(req, res) {
 app.post("/api_admin/delete", async function(req, res) {
   let { short } = req.body;
   try {
+    if(res.login.email != process.env.admin) return res.status(401).send({
+      error: true,
+      message: "You are not an Admin/Developer of this site!"
+    });
+
     await data.delete(short, res.login.email, true);
     res.status(200).send({
       error: false,
@@ -98,7 +103,25 @@ app.post("/api_admin/delete", async function(req, res) {
   };
 });
 
+app.post("/api/delete", async function(req, res) {
+  let { short } = req.body;
+  try {
+    await data.delete(short, res.login.email);
+    res.status(200).send({
+      error: false,
+      message: "Success"
+    });
+  } catch(e) {
+    if(e.notFound) return res.status(404).send({
+      error: true,
+      message: `Shortlink "${short}" not found`
+    });
 
+    log.ERR(`An error occurred while deleting "${short}"`)
+    console.error(e);
+    res.status(500).send(e);
+  };
+});
 app.post("/api/login", async function(req, res) {
   let { email, password, remember } = req.body;
   if(!email) return res.status(411).send({
