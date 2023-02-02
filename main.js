@@ -31,7 +31,7 @@ app.use(async function(req, res, next) {
   //if(req.method !== "GET") return next();
   if(req.path.startsWith("/s/")) return next();
 
-  if(!req.cookies["login"] && !req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify")) {
+  if(!req.cookies["login"] && !req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify") && !req.path.includes("/apis/")) {
     res.redirect("/login/");
     return !1;
   };
@@ -44,7 +44,7 @@ app.use(async function(req, res, next) {
   } catch {}
 
   let exists = await data.collection.findOne({ email: atob(format.email) })
-  if((!exists || exists.password != atob(format.password)) && (!req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify") && !req.path.includes("/api"))) {
+  if((!exists || exists.password != atob(format.password)) && (!req.path.includes("/login") && !req.path.includes("/register") && !req.path.includes("/verify") && !req.path.includes("/api") && !req.path.includes("/apis/"))) {
     res.clearCookie("login");
     res.redirect("/login");
     return !1;
@@ -67,12 +67,98 @@ app.use(async function(req, res, next) {
 app.use(express.static("public"));
 app.set("port", process.env.PORT || 8080);
 
+app.get("/apis/list", async function(req, res) {
+  const { apikey } = req.query;
+  if(!apikey) return res.status(411).send({
+    error: 411,
+    message: "Apikey is Required!"
+  });
+
+  const acc = await data.collection.findOne({ apikey });
+  if(!acc) return res.status(404).send({
+    error: 404,
+    message: "Apikey not found!"
+  });
+
+  await data.increase("hit", apikey);
+  let short = await data.collection.find({ owner: acc.email });
+  short = short.map((v, i) => ({
+    number: Number(i) + 1,
+    url: v.url,
+    short: v.short,
+    click: v.click
+  }));
+  res.status(200).send(short);
+});
+
+app.get("/apis/short", async function(req, res) {
+  let { apikey, url, alias } = req.query;
+  alias = alias || makeId(10);
+  if(!/^[A-z0-9_-]{3,10}$/.test(alias)) return res.status(400).send({
+    error: true,
+    message: "Only letters A-z, 0-9, \"_\" and \"-\" are allowed"
+  });
+
+  if(!apikey) return res.status(411).send({
+    error: 411,
+    message: "Apikey is Required!"
+  });
+
+  const acc = await data.collection.findOne({ apikey });
+  if(!acc) return res.status(404).send({
+    error: 404,
+    message: "Apikey not found!"
+  });
+
+  let hit = await data.increase("hit", apikey);
+  let result;
+
+  try {
+    result = await data.set(url, alias, acc.email);
+  } catch(e) {
+    if(e.exists) return res.status(403).send({
+      error: true,
+      message: "alias already exists"
+    });
+    return res.status(500).send({
+      error: true,
+      message: "Internal Server Error",
+      stack: e.stack
+    });
+  };
+
+  res.status(200).send({
+    realUrl: url,
+    url: req.protocol + "://" + req.get("host") + "/s/" + alias,
+    alias,
+    hit
+  });
+});
+
+
 app.get("/api/list", async function(req, res) {
   let list = await data.collection.find({ owner: res.login.email });
   list = list.map((v, i) => ({
     number: Number(i) + 1,
     url: v.url,
     short: v.short,
+    click: v.click
+  }));
+  res.status(200).send(list);
+});
+
+app.get("/api_admin/list", async function(req, res) {
+  if(res.login.email != process.env.admin) return res.status(401).send({
+    error: true,
+    message: "You are not an Admin/Developer of this site!"
+  });
+
+  let list = await data.collection.find({})
+  list = list.filter(v => typeof v.click == "number").map((v, i) => ({
+    number: Number(i) + 1,
+    url: v.url,
+    short: v.short,
+    owner: v.owner,
     click: v.click
   }));
   res.status(200).send(list);
@@ -277,8 +363,8 @@ app.post("/api/short", async function(req, res) {
       message: "alias already exists"
     });
     return res.status(500).send(e);
-  }
-  let result = req.protocol + "://" + req.get("host") + "/s/" + alias
+  };
+  let result = req.protocol + "://" + req.get("host") + "/s/" + alias;
   res.status(200).send({
     error: false,
     message: `Successfully added link\n${result}`
@@ -289,7 +375,7 @@ app.get("/s/:id", async function(req, res, next) {
   let id = req.params.id;
   let get = await data.get(id);
   if(!get) return next();
-  await data.increase(id);
+  await data.increase("short", id);
 
   res.redirect(get.url);
 });
