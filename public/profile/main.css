@@ -1,0 +1,13 @@
+table, tr, td {
+  border: 1px solid white;
+}
+.spoiler {
+  background-color: gray;
+  color: transparent;
+  user-select: none;
+}
+
+.spoiler:hover {
+  background-color: inherit;
+  color: inherit;
+}

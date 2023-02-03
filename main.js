@@ -208,6 +208,25 @@ app.post("/api/delete", async function(req, res) {
     res.status(500).send(e);
   };
 });
+app.post("/api/edit", async function(req, res) {
+  let { short, new: nw } = req.body;
+  try {
+    await data.edit(short, nw, res.login.email);
+    res.status(200).send({
+      error: false,
+      message: "Success"
+    });
+  } catch(e) {
+    if(e.notFound) return res.status(404).send({
+      error: true,
+      message: `Shortlink "${short}" not found`
+    });
+
+    log.ERR(`An error occurred while editing "${short}"`)
+    console.error(e);
+    res.status(500).send(e);
+  };
+});
 app.post("/api/login", async function(req, res) {
   let { email, password, remember } = req.body;
   if(!email) return res.status(411).send({
@@ -369,6 +388,40 @@ app.post("/api/short", async function(req, res) {
     error: false,
     message: `Successfully added link\n${result}`
   });
+});
+
+app.post("/api/getKey", async function(req, res) {
+  let { login } = req.cookies;
+
+  let format = {}
+  try {
+    format = JSON.parse(atob(login));
+  } catch {}
+  if(!format.email) return res.status(411).send({
+    error: true,
+    message: "email required"
+  });
+  if(!format.password) return res.status(411).send({
+    error: true,
+    message: "password required"
+  });
+
+  let exists = await data.collection.findOne({ email: atob(format.email) })
+  if(!exists) return res.status(404).send({
+    error: true,
+    message: "User not found"
+  });
+  if(exists.password !== atob(format.password)) return res.status(401).send({
+    error: true,
+    message: "Incorrect password"
+  });
+
+  try {
+    const result = await data.apikey(exists.email);
+    res.status(200).send(result);
+  } catch(e) {
+    return res.status(500).send(e);
+  };
 });
 
 app.get("/s/:id", async function(req, res, next) {

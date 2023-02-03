@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Shortlink - /api/</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/styles/default.min.css"> -->
+    <link rel="stylesheet" href="dracula.css">
+    <style>
+      a.link-info {
+        text-decoration: none;
+      }
+    </style>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <!-- <script src="https://unpkg.com/@highlightjs/cdn-assets@11.7.0/highlight.min.js"></script> -->
+    <script>
+      hljs.initHighlightingOnLoad();
+    </script>
+  </head>
+  <body style="background-color: #212529; color: #fff;">
+    <div>
+      <nav class="navbar navbar-expand-sm bg-dark navbar-dark fixed-top">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="#">Short link</a>
+          <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/profile/">Profile</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/donate/">Support me</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link active" href="/api/">API Documentation</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+    </div>
+    <br><br><br>
+
+    <div class="card text-white bg-secondary mb-3">
+      <div class="card-header">APIs</div>
+      <div class="card-body">
+        <p class="card-text">Get apikey from <a href="/profile/" class="link-info">profile</a></p><br>
+        <div class="mb-1">
+          <div>
+            <span class="badge bg-primary bg-gradient">GET</span>
+            /apis/short?apikey=xxx&url=xxx&alias=
+          </div>
+          <pre>
+            <code>
+// ES6
+// import fetch from "node-fetch";
+const fetch = require("node-fetch");
+
+const key = "example";
+const url = "https://example.com/";
+const alias = "exmple"; // leave blank for random
+
+const res = await fetch(`http://rstu.my.id/apis/short?apikey=${key}&url=${encodeURIComponent(url)}&alias=${alias}`);
+const text = await res.text();
+try {
+  console.log(JSON.parse(text));
+  /*
+  {
+    "realUrl": "https://example.com/",
+    "url": "http://rstu.my.id/s/xxx",
+    "alias": "xxx",
+    "hit": 1
+  }
+  */
+} catch {
+  console.log("Status :", res.status);
+  // 400 => alias url can only be A-z, 0-9, "_", "-", and minimum length 3 maximum 10
+  // 411 => api key is empty
+  // 404 => apikey is invalid or not found
+  // 403 => aliases already exist
+  // 500 => error from RestApi (maybe :v)
+
+  console.log(text);  
+};
+            </code>
+          </pre>
+        </div>
+        <div class="mb-1">
+          <div>
+            <span class="badge bg-primary bg-gradient">GET</span>
+            /apis/list?apikey=xxx
+          </div>
+          <pre>
+            <code>
+// ES6
+// import fetch from "node-fetch";
+const fetch = require("node-fetch");
+
+const key = "example";
+
+const res = await fetch(`http://rstu.my.id/apis/list?apikey=${key}`);
+const text = await res.text();
+try {
+  console.log(JSON.parse(text));
+  /*
+  [
+    {
+      "number": 1,
+      "url": "https://example.com/",
+      "short": "xxx",
+      "click": 4
+    },
+    ...
+  ]
+  */
+} catch {
+  console.log("Status :", res.status);
+  // 411 => api key is empty
+  // 404 => apikey is invalid or not found
+  // 500 => error from RestApi (maybe :v)
+
+  console.log(text);  
+};
+            </code>
+          </pre>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
