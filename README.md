@@ -4,7 +4,7 @@ Installation :<br>
 ```bash
 apt install update
 apt upgrade -y
-apt install git nodejs-lts nano -y
+apt install git nodejs nano -y
 npm i
 ```
 <br><br>
