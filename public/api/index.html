@@ -132,6 +132,44 @@ try {
             </code>
           </pre>
         </div>
+        <div class="mb-1">
+          <div>
+            <span class="badge bg-primary bg-gradient">GET</span>
+            /apis/delete?alias=xxx&apikey=xxx
+          </div>
+          <pre>
+            <code>
+// ES6
+// import fetch from "node-fetch";
+const fetch = require("node-fetch");
+
+const key = "example";
+const alias = "example";
+
+const res = await fetch(`http://rstu.my.id/apis/delete?alias=${alias}apikey=${key}`);
+const text = await res.text();
+try {
+  console.log(JSON.parse(text));
+  /*
+  {
+    "status": 200,
+    "message": "Success removing the short link"
+  }
+  */
+} catch {
+  console.log("Status :", res.status);
+  console.log("Data :", text);
+  // 411 => api key is empty
+  // 404 => apikey is invalid or not found
+  // 404 => alias not found
+  // 401 => access denied
+  // 500 => error from RestApi (maybe :v)
+
+  console.log(text);  
+};
+            </code>
+          </pre>
+        </div>
       </div>
     </div>
   </body>

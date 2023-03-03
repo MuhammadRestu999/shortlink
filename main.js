@@ -135,6 +135,46 @@ app.get("/apis/short", async function(req, res) {
   });
 });
 
+app.get("/apis/delete", async function(req, res) {
+  let { apikey, alias } = req.query;
+  if(!apikey) return res.status(411).send({
+    error: 411,
+    message: "Apikey is Required!"
+  });
+
+  const acc = await data.collection.findOne({ apikey });
+  if(!acc) return res.status(404).send({
+    error: 404,
+    message: "Apikey not found!"
+  });
+
+  let hit = await data.increase("hit", apikey);
+  let result;
+
+  try {
+    result = await data.delete(alias, acc.email);
+  } catch(e) {
+    if(e.notFound) return res.status(404).send({
+      error: true,
+      message: "alias not found"
+    });
+    if(e.notOwner) return res.status(401).send({
+      error: true,
+      message: "You are not the owner of the short link"
+    });
+    return res.status(500).send({
+      error: true,
+      message: "Internal Server Error",
+      stack: e.stack
+    });
+  };
+
+  res.status(200).send({
+    status: 200,
+    message: "Success removing the short link"
+  });
+});
+
 
 app.get("/api/list", async function(req, res) {
   let list = await data.collection.find({ owner: res.login.email });
