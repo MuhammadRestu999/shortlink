@@ -1,4 +1,4 @@
-function del(short, td) {
+lfunction del(short, td) {
   td.disabled = !0;
   $.post("/api/delete", {
     short
@@ -15,9 +15,11 @@ function edit(short, td) {
   td.disabled = !0;
   Swal.fire({
     title: "Enter a new url",
-    input: "url",
+    input: "text",
     inputAttributes: {
-      autocapitalize: "off"
+      autocapitalize: "off",
+      required: true,
+      pattern: "^(https?|ftp):\/\/[^\s/$.?#].[^\s]*|(minecraft|whatsapp):\/\/[^\s]*$"
     },
     showCancelButton: true,
     confirmButtonText: "Edit",
