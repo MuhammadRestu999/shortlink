@@ -1,4 +1,4 @@
-lfunction del(short, td) {
+function del(short, td) {
   td.disabled = !0;
   $.post("/api/delete", {
     short
