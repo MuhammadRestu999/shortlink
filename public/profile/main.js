@@ -17,14 +17,15 @@ function edit(short, td) {
     title: "Enter a new url",
     input: "text",
     inputAttributes: {
-      autocapitalize: "off",
-      required: true,
-      pattern: "^(https?|ftp):\/\/[^\s/$.?#].[^\s]*|(minecraft|whatsapp):\/\/[^\s]*$"
+      autocapitalize: "off"
     },
     showCancelButton: true,
     confirmButtonText: "Edit",
     showLoaderOnConfirm: true,
     preConfirm: (nw) => {
+      if(!nw) return Swal.showValidationMessage("Enter a new URL!")
+      if(!/^(https?|ftp):\/\/[^\s/$.?#].[^\s]*|(minecraft|whatsapp):\/\/[^\s]*$/.test(nw)) return Swal.showValidationMessage("Invalid URL!")
+
       $.post("/api/edit", {
         short,
         new: nw
