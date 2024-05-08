@@ -409,9 +409,9 @@ app.post("/api/short", async function(req, res) {
   });
 
   alias = alias || makeId(10);
-  if(!/^[A-z0-9_-]{3,10}$/.test(alias)) return res.status(400).send({
+  if(!/^[A-z0-9_-]{3,15}$/.test(alias)) return res.status(400).send({
     error: true,
-    message: "Only letters A-z, 0-9, \"_\" and \"-\" are allowed"
+    message: "Only letters A-z, 0-9, \"_\" and \"-\" are allowed, and minimum 3 letters, maximum 15 letters"
   });
 
   try {
